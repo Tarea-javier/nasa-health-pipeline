@@ -1,0 +1,17 @@
+services:
+  db:
+    image: timescale/timescaledb:latest-pg17
+    container_name: nasa-db
+    environment:
+      POSTGRES_USER: nasa
+      POSTGRES_PASSWORD: nasa
+      POSTGRES_DB: salud
+    ports:
+      - "5433:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./db:/docker-entrypoint-initdb.d:ro
+    restart: unless-stopped
+
+volumes:
+  db_data:

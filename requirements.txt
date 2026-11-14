@@ -1,0 +1,11 @@
+fastapi>=0.115
+uvicorn[standard]>=0.30
+psycopg[binary,pool]>=3.2
+websockets>=13
+python-dotenv>=1.0
+python-multipart>=0.0.9
+langgraph>=1.0
+langchain-openai>=1.0
+faster-whisper>=1.1
+av>=15,<19
+piper-tts>=1.3
