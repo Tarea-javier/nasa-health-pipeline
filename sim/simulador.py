@@ -91,7 +91,11 @@ def diarios() -> dict:
     return {"sueno_horas": round(min(9, max(4.5, random.gauss(6.3, 0.6))), 1), "animo": random.choice([3, 4, 4, 4, 5])}
 
 
+OMITIR: set[tuple[str, str]] = set()
+
+
 def registro(tid: str, ts: float, valores: dict) -> dict:
+    valores = {k: v for k, v in valores.items() if (tid, k) not in OMITIR}
     return {"tripulante_id": tid, "sensor_id": "simulador", "tiempo": ts, "simulado": True, **valores}
 
 
@@ -180,7 +184,12 @@ def main():
     p.add_argument("--intervalo", type=float, default=1.0, help="segundos entre envíos en vivo")
     p.add_argument("--cada-evento", type=float, default=180, help="segundos entre eventos anómalos")
     p.add_argument("--sin-eventos", action="store_true", help="no generar eventos anómalos")
+    p.add_argument(
+        "--omitir", action="append", default=[], metavar="TRIPULANTE:INDICADOR",
+        help="no simular ese indicador porque lo manda un sensor real, p. ej. --omitir T1:hr",
+    )
     a = p.parse_args()
+    OMITIR.update(tuple(x.split(":", 1)) for x in a.omitir)
 
     if a.historial:
         historial(a.historial)

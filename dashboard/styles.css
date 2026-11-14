@@ -441,3 +441,21 @@ button { cursor: pointer; background: none; border: 0; }
   .lateral { grid-template-columns: 1fr; }
   .jarvis { height: 600px; border-left: 0; border-top: 1px solid var(--borde); }
 }
+
+@media (max-width: 700px) {
+  .entrada { gap: 10px; padding: 12px 14px 18px; }
+  .entrada input { height: 46px; font-size: 16px; }
+  .boton-redondo { width: 46px; height: 46px; }
+  .boton-redondo svg { width: 20px; height: 20px; }
+  .entrada .boton-redondo:first-child { width: 54px; height: 54px; }
+  .entrada .boton-redondo:first-child svg { width: 24px; height: 24px; }
+}
+
+@media (max-width: 700px) {
+  .entrada { gap: 10px; padding: 12px 14px 18px; }
+  .entrada input { height: 48px; font-size: 16px; }
+  .boton-redondo { width: 48px; height: 48px; }
+  .boton-redondo svg { width: 20px; height: 20px; }
+  .entrada .boton-redondo:first-child { width: 60px; height: 60px; }
+  .entrada .boton-redondo:first-child svg { width: 26px; height: 26px; }
+}
