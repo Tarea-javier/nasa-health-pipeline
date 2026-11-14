@@ -428,6 +428,13 @@ const ICONO = {
 };
 
 const rj = {};
+const SILENCIO = "data:audio/wav;base64,UklGRsQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YaAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+const reproductor = new Audio();
+
+function desbloquearAudio() {
+  reproductor.src = SILENCIO;
+  reproductor.play().catch(() => {});
+}
 
 function icono(nombre) {
   const span = h("span");
@@ -460,7 +467,8 @@ async function conversar(texto, peticion) {
     if (r.transcripcion) agregar("usuario", r.transcripcion);
     agregar("asistente", r.respuesta, r.herramientas);
     if (r.audio) {
-      new Audio(`data:audio/wav;base64,${r.audio}`).play().catch(e => agregar("error", `Could not play the audio: ${e.message}`));
+      reproductor.src = `data:audio/wav;base64,${r.audio}`;
+      reproductor.play().catch(e => agregar("error", `Could not play the audio: ${e.message}`));
     }
     ciclo();
   } catch (e) {
@@ -499,7 +507,10 @@ export function montarJarvis() {
   rj.mensajes = h("div", { clase: "mensajes" });
   rj.sugerencias = h("div", { clase: "sugerencias" },
     SUGERENCIAS.map(s => h("button", { type: "button", onclick: () => preguntar(s) }, s)));
-  rj.microfono = h("button", { type: "button", clase: "boton-redondo", title: "Talk to Jarvis", onclick: () => grabadora.alternar() }, icono("microfono"));
+  rj.microfono = h("button", { type: "button", clase: "boton-redondo", title: "Talk to Jarvis", onclick: () => {
+    desbloquearAudio();
+    grabadora.alternar();
+  } }, icono("microfono"));
   rj.entrada = h("input", { autocomplete: "off", placeholder: "Ask Jarvis…" });
   rj.enviar = h("button", { clase: "boton-redondo primario", title: "Send" }, icono("enviar"));
   const formulario = h("form", { clase: "entrada" }, rj.microfono, rj.entrada, rj.enviar);
