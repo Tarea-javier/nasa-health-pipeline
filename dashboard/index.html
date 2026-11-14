@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Health Monitor — Mission</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="styles.css">
+<script type="module" src="app.js"></script>
+</head>
+<body>
+<div class="app">
+  <main class="tablero">
+    <header class="barra">
+      <div class="marca">
+        <svg width="36" height="36" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <defs>
+            <linearGradient id="visor" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#f0a3bb"/>
+              <stop offset="1" stop-color="#c08535"/>
+            </linearGradient>
+          </defs>
+          <circle cx="16" cy="13" r="10" stroke="#f0a3bb" stroke-width="1.6"/>
+          <rect x="9" y="8.5" width="14" height="9" rx="4.5" fill="url(#visor)"/>
+          <path d="M12 11.2l2.2-.9" stroke="#fff" stroke-width="1.2" stroke-linecap="round" opacity=".55"/>
+          <path d="M6 31c0-4 4.5-6.5 10-6.5s10 2.5 10 6.5" stroke="#f0a3bb" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+        <div>
+          <h1>Health Monitor</h1>
+          <p>Mission · crew telemetry</p>
+        </div>
+      </div>
+      <nav class="segmentado" id="tripulantes" aria-label="Crew member"></nav>
+      <nav class="segmentado" id="rangos" aria-label="Time range"></nav>
+      <div class="conexion" id="conexion"><i></i><span>Connecting…</span></div>
+    </header>
+
+    <section class="resumen" id="resumen"></section>
+    <section class="vitales" id="vitales"></section>
+
+    <section class="inferior">
+      <article class="panel foco" id="foco"></article>
+      <div class="lateral">
+        <article class="panel" id="cabina"></article>
+        <article class="panel" id="diario"></article>
+      </div>
+    </section>
+  </main>
+
+  <aside class="jarvis" id="jarvis"></aside>
+</div>
+</body>
+</html>
