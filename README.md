@@ -151,5 +151,8 @@ sudo docker compose down -v
 sudo docker compose up -d
 ```
 
+## How to set up the Dashboard
+Follow the following [Link](https://github.com/Tarea-javier/landing_nasa_dashboard) for instructions. 
+
 ## Demo
 [Link to the demo of ADAM!](https://tarea-javier.github.io/landing_nasa_dashboard/)
