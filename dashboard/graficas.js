@@ -20,7 +20,7 @@ export function tema() {
   if (cacheTema) return cacheTema;
   const s = getComputedStyle(document.documentElement);
   const v = n => s.getPropertyValue(n).trim();
-  cacheTema = {
+  const t = {
     texto: v("--texto"),
     tenue: v("--tenue"),
     rejilla: v("--rejilla"),
@@ -29,7 +29,8 @@ export function tema() {
     series: [v("--serie-1"), v("--serie-2")],
     fuente: `11px ${v("--fuente")}`,
   };
-  return cacheTema;
+  if (t.texto) cacheTema = t;
+  return t;
 }
 
 export function tramos(datos) {
