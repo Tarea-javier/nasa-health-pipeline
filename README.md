@@ -1,4 +1,4 @@
-# Monitor de salud de astronautas — pipeline con datos simulados
+# ADAM: Astronaut Health Monitor — Simulated pipeline
 
 ```
 simulador / bridge.py ──WebSocket──► FastAPI ──► TimescaleDB ◄──polling 1 s── dashboard
@@ -6,7 +6,7 @@ simulador / bridge.py ──WebSocket──► FastAPI ──► TimescaleDB ◄
                                         └──── /api/chat ◄── Jarvis (LangGraph) ◄───┘
 ```
 
-## Estructura
+## Structure
 
 ```
 nasa-health-pipeline/
@@ -23,24 +23,24 @@ nasa-health-pipeline/
 └── requirements.txt
 ```
 
-## Base de datos
+## Database
 
-- `lecturas`: hypertable en formato largo (`tiempo, tripulante_id, indicador, valor, sensor_id, simulado`). Agregar un indicador nuevo es insertar una fila en `indicadores`; no cambia el esquema.
-- `metadata`: una fila por tabla con `version` y `actualizado`. Cada inserción sube la versión en la misma transacción. El dashboard consulta `/api/version` cada segundo y solo vuelve a pedir datos cuando la versión cambió.
-- `lecturas_1min`: agregado continuo por minuto para los rangos de 24 h a 1 año.
-- `indicadores`: rangos `normal` y `alerta` que usa el dashboard para el código de colores. Son valores de referencia para la demo y se ajustan en esta tabla.
-- El ambiente de la cabina se guarda con `tripulante_id = 'cabina'`.
+- `lecturas`: hypertable in large format (`tiempo, tripulante_id, indicador, valor, sensor_id, simulado`). Adding a new indicator is done by adding a new line in `indicadores`; it does not affect the structure.
+- `metadata`: one line per table with `version` and `actualizado`. Each insertion uploads the version in the same transaccion. The dashboard checks `/api/version` each second and only asks for data again once the version changes.
+- `lecturas_1min`: continuous upload each minute for the 24 hours to 1 year range.
+- `indicadores`: parameters `normal` and `alerta` that the dashboard uses for its color code. They are reference values for the demo and will be adjusted for this table.
+- The cabin data is saved in `tripulante_id = 'cabina'`.
 
-## Arranque (Arch)
+## Startup (Arch)
 
-1. Docker, una sola vez:
+1. Docker, only once:
 
 ```bash
 sudo pacman -S --needed docker docker-compose
 sudo systemctl start docker
 ```
 
-2. Base de datos:
+2. Database:
 
 ```bash
 cd nasa-health-pipeline
@@ -48,9 +48,9 @@ sudo docker compose up -d
 sudo docker compose logs -f db
 ```
 
-Espera a ver `database system is ready to accept connections` y sal con `Ctrl+C`.
+Wait to see `database system is ready to accept connections` and exit with `Ctrl+C`.
 
-3. Entorno de Python:
+3. Python Environment:
 
 ```bash
 python -m venv .venv
@@ -58,19 +58,19 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-4. Historial simulado (opcional, para las vistas de 7 d, 30 d y 1 año):
+4. Simulated History (Optional, made for the 7d, 30d and 1y view):
 
 ```bash
 python sim/simulador.py --historial 365
 ```
 
-5. Servidor (terminal 1):
+5. Server (terminal 1):
 
 ```bash
 uvicorn server.main:app --host 0.0.0.0 --port 8000
 ```
 
-6. Simulador en vivo (terminal 2):
+6. Live Simulation (terminal 2):
 
 ```bash
 python sim/simulador.py
@@ -78,79 +78,77 @@ python sim/simulador.py
 
 7. Dashboard: http://localhost:8000
 
-Acepta parámetros en la URL: `http://localhost:8000/?tripulante=T2&rango=24h`.
+Accept parameters in the URL: `http://localhost:8000/?tripulante=T2&rango=24h`.
 
-## Simulador
+## Simulator
 
-| Opción | Efecto |
+| Option | Effect |
 |---|---|
-| `--historial DIAS` | Carga DIAS de historial directo a la base y termina |
-| `--intervalo 1` | Segundos entre envíos en vivo |
-| `--cada-evento 180` | Segundos entre eventos anómalos |
-| `--sin-eventos` | Sin eventos anómalos |
+| `--historial DIAS` | Loads DIAS days of history directly into the database and exits |
+| `--intervalo 1` | Seconds between live submissions |
+| `--cada-evento 180` | Seconds between anomalous events |
+| `--sin-eventos` | No anomalous events |
 
-Eventos: taquicardia, desaturación, fiebre, CO₂ alto y pico de radiación. Todas las lecturas simuladas se guardan con `simulado = true`.
+Events: tachycardia, desaturation, fever, high CO₂, and radiation spike. All simulated readings are saved with `simulado = true`.
 
-## Formato de mensaje del WebSocket
+## WebSocket message format
 
-Un objeto o una lista de objetos. Cada clave numérica que exista en `indicadores` se guarda como una lectura:
+A single object or a list of objects. Each numeric key present in `indicadores` is saved as a reading:
 
-```json
-{"tripulante_id": "T1", "sensor_id": "esp32", "tiempo": 1794650366.2, "hr": 72, "spo2": 98}
-```
-
-`tiempo` es opcional (epoch en segundos o ISO 8601); si falta, se usa la hora del servidor. El ESP32 y `bridge.py` del Apple Watch mandan a este mismo endpoint.
+`tiempo` is optional (epoch in seconds or ISO 8601); if missing, the server time is used. The ESP32 and the Apple Watch `bridge.py` send to this same endpoint.
 
 ## API
 
-| Ruta | Devuelve |
+| Route | Returns |
 |---|---|
-| `GET /api/version` | Versión y hora de la última escritura |
-| `GET /api/estado?tripulante_id=T1` | Último valor de cada indicador con su estado |
-| `GET /api/serie?indicadores=hr,co2&tripulante_id=T1&rango=24h` | Series; rangos: `tiempo_real`, `1h`, `24h`, `7d`, `30d`, `1y` |
-| `GET /api/tripulantes`, `GET /api/indicadores` | Catálogos |
+| `GET /api/version` | Version and time of the last write |
+| `GET /api/estado?tripulante_id=T1` | Latest value of each indicator with its status |
+| `GET /api/serie?indicadores=hr,co2&tripulante_id=T1&rango=24h` | Series; ranges: `tiempo_real`, `1h`, `24h`, `7d`, `30d`, `1y` |
+| `GET /api/tripulantes`, `GET /api/indicadores` | Catalogs |
 
-## Jarvis
+## ADAM
 
-Grafo de LangGraph con un nodo de modelo y un `ToolNode`. Memoria por sesión y tripulante con `InMemorySaver`.
+LangGraph graph with one model node and one `ToolNode`. Per-session and per-crew-member memory using `InMemorySaver`.
 
-| Tool | Qué hace |
+| Tool | What it does |
 |---|---|
-| `estado_actual` | Último valor y estado (normal, precaución, alerta) de cada indicador |
-| `consultar_serie` | Promedio, mínimo, máximo, último valor y % fuera de rango en un periodo |
-| `mostrar_grafica` | Inserta un comando en `comandos_ui`; el dashboard lo aplica en su siguiente ciclo de 1 s |
+| `estado_actual` | Latest value and status (normal, caution, alert) of each indicator |
+| `consultar_serie` | Average, minimum, maximum, latest value, and % out of range over a period |
+| `mostrar_grafica` | Inserts a command into `comandos_ui`; the dashboard applies it on its next 1 s cycle |
 
-El estado de cada indicador lo calcula el servidor con los rangos de la tabla `indicadores`; el modelo solo lo reporta.
+The status of each indicator is calculated by the server using the ranges in the `indicadores` table; the model only reports it.
 
-Configuración en `.env`:
+Configuration in `.env`:
 
-| Variable | Valor |
+| Variable | Value |
 |---|---|
-| `LLM_BASE_URL` | `https://api.deepseek.com` (o `http://localhost:11434/v1` para Ollama) |
+| `LLM_BASE_URL` | `https://api.deepseek.com` (or `http://localhost:11434/v1` for Ollama) |
 | `LLM_MODEL` | `deepseek-flash` |
-| `LLM_API_KEY` | tu key |
-| `LLM_THINKING` | `disabled` para respuestas rápidas; vacío para no enviar el parámetro |
+| `LLM_API_KEY` | your key |
+| `LLM_THINKING` | `disabled` for fast responses; empty to not send the parameter |
 
-Prueba directa:
+Direct test:
 
 ```bash
 curl -s -X POST localhost:8000/api/chat -H 'Content-Type: application/json' \
-  -d '{"mensaje": "¿Cómo están mis signos vitales?", "tripulante_id": "T1"}'
+  -d '{"mensaje": "How are my vital signs?", "tripulante_id": "T1"}'
 ```
 
-## Actualizar una base ya creada
+## Updating an existing database
 
-Los scripts de `db/` solo corren cuando se crea el volumen. Si la base ya existía, aplica las migraciones nuevas a mano:
+The scripts in `db/` only run when the volume is created. If the database already existed, apply the new migrations manually:
 
 ```bash
 sudo docker exec -i nasa-db psql -U nasa -d salud < db/002_comandos_ui.sql
 ```
 
-## Reiniciar la base desde cero
+## Resetting the database from scratch
 
-Borra el volumen y vuelve a crearlo; los scripts de `db/` corren de nuevo:
+Delete the volume and recreate it; the scripts in `db/` run again:
 
 ```bash
 sudo docker compose down -v
 sudo docker compose up -d
 ```
+
+## Demo
