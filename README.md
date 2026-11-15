@@ -10,16 +10,16 @@ simulador / bridge.py ──WebSocket──► FastAPI ──► TimescaleDB ◄
 
 ```
 nasa-health-pipeline/
-├── .env                    configuración local con la API key (no se sube a git)
-├── .env.example            plantilla del .env
-├── docker-compose.yml      TimescaleDB en el puerto 5433
-├── db/001_init.sql         esquema: tripulantes, indicadores, lecturas, metadata, lecturas_1min
-├── db/002_comandos_ui.sql  comandos que Jarvis manda al dashboard
-├── server/main.py          FastAPI: ingesta, API, chat y dashboard
-├── server/consultas.py     consultas a la base, compartidas por la API y las tools
-├── server/agente.py        Jarvis: grafo de LangGraph, tools y modelo
-├── sim/simulador.py        datos en vivo por WebSocket o historial directo a la base
-├── dashboard/index.html    dashboard y chat sin dependencias externas
+├── .env                    local configuration with the API key (not pushed to git)
+├── .env.example            template for the .env
+├── docker-compose.yml      TimescaleDB on port 5433
+├── db/001_init.sql         schema: tripulantes, indicadores, lecturas, metadata, lecturas_1min
+├── db/002_comandos_ui.sql  commands that Jarvis sends to the dashboard
+├── server/main.py          FastAPI: ingestion, API, chat, and dashboard
+├── server/consultas.py     database queries, shared by the API and the tools
+├── server/agente.py        ADAM: LangGraph graph, tools, and model
+├── sim/simulador.py        live data over WebSocket or direct history load into the database
+├── dashboard/index.html    dashboard and chat with no external dependencies
 └── requirements.txt
 ```
 
