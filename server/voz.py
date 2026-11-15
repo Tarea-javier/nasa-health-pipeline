@@ -17,13 +17,13 @@ IDIOMAS = ("es", "en")
 
 VOCABULARIO = {
     "es": (
-        "Jarvis, ¿cómo están mis signos vitales? Frecuencia cardiaca, oxígeno en sangre, "
+        "Adam, ¿cómo están mis signos vitales? Frecuencia cardiaca, oxígeno en sangre, "
         "temperatura corporal, presión arterial, glucosa, horas de sueño, estado de ánimo, "
         "CO₂ en cabina, radiación, humedad, Comandante Ríos, Dra. Vega. "
         "Muéstrame la gráfica de la última hora, de 24 horas, de la última semana, del mes, del año."
     ),
     "en": (
-        "Jarvis, how are my vital signs? Heart rate, blood oxygen, body temperature, blood pressure, "
+        "Adam, how are my vital signs? Heart rate, blood oxygen, body temperature, blood pressure, "
         "glucose, sleep, mood, cabin CO2, radiation, humidity, Commander Ríos, Dr. Vega. "
         "Show me the chart for the last hour, the last 24 hours, the last week, the month, the year."
     ),
