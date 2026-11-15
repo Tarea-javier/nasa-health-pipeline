@@ -14,7 +14,7 @@ nasa-health-pipeline/
 ├── .env.example            template for the .env
 ├── docker-compose.yml      TimescaleDB on port 5433
 ├── db/001_init.sql         schema: tripulantes, indicadores, lecturas, metadata, lecturas_1min
-├── db/002_comandos_ui.sql  commands that Jarvis sends to the dashboard
+├── db/002_comandos_ui.sql  commands that ADAM sends to the dashboard
 ├── server/main.py          FastAPI: ingestion, API, chat, and dashboard
 ├── server/consultas.py     database queries, shared by the API and the tools
 ├── server/agente.py        ADAM: LangGraph graph, tools, and model
