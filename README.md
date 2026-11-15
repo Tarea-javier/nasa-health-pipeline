@@ -3,7 +3,7 @@
 ```
 simulador / bridge.py ──WebSocket──► FastAPI ──► TimescaleDB ◄──polling 1 s── dashboard
                                         ▲                                          │
-                                        └──── /api/chat ◄── Jarvis (LangGraph) ◄───┘
+                                        └──── /api/chat ◄── ADAM (LangGraph) ◄───┘
 ```
 
 ## Structure
