@@ -1,11 +1,15 @@
 import asyncio
+import base64
 import logging
 import mimetypes
 import time
+import uuid
+from collections import OrderedDict
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile, WebSocket, WebSocketDisconnect
+from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -20,6 +24,10 @@ mimetypes.add_type("text/css", ".css")
 
 DASHBOARD = Path(__file__).resolve().parent.parent / "dashboard"
 CAMPOS_META = {"sensor_id", "tripulante_id", "tiempo", "simulado"}
+VISTAS = ["vista", "mostrar"]
+MAX_AUDIOS = 20
+
+audios: OrderedDict[str, bytes] = OrderedDict()
 
 jarvis: Jarvis | None = None
 
@@ -117,6 +125,46 @@ async def comandos(desde: int = 0):
     return await db.comandos_desde(desde)
 
 
+@app.get("/api/sincronia")
+async def sincronia():
+    v = await db.version()
+    return {
+        "comando": v["comando"],
+        "vista": await db.ultimo_comando(VISTAS),
+        "hablar": await db.ultimo_comando(["hablar"]),
+    }
+
+
+class Vista(BaseModel):
+    tripulante: str
+    rango: str
+    foco: str
+    origen: str = ""
+
+
+@app.post("/api/vista")
+async def vista(v: Vista):
+    if v.tripulante not in db.tripulantes or v.rango not in db.RANGOS:
+        raise HTTPException(400, "vista inválida")
+    return {"id": await db.crear_comando("vista", v.model_dump())}
+
+
+def guardar_audio(audio_b64: str) -> str:
+    clave = uuid.uuid4().hex
+    audios[clave] = base64.b64decode(audio_b64)
+    while len(audios) > MAX_AUDIOS:
+        audios.popitem(last=False)
+    return clave
+
+
+@app.get("/api/audio/{clave}")
+async def audio_guardado(clave: str):
+    datos = audios.get(clave)
+    if datos is None:
+        raise HTTPException(404, "audio no disponible")
+    return Response(datos, media_type="audio/wav")
+
+
 class Pregunta(BaseModel):
     mensaje: str
     tripulante_id: str = "T1"
@@ -138,6 +186,7 @@ async def hablar(
     audio: UploadFile = File(...),
     tripulante_id: str = Form("T1"),
     sesion: str = Form("default"),
+    origen: str = Form(""),
 ):
     if tripulante_id not in db.tripulantes:
         raise HTTPException(400, f"tripulante desconocido: {tripulante_id}")
@@ -162,6 +211,12 @@ async def hablar(
     t3 = time.perf_counter()
     tiempos = {"whisper": round(t1 - t0, 2), "modelo": round(t2 - t1, 2), "piper": round(t3 - t2, 2)}
     log.info(f"voz [{idioma}] tiempos (s): {tiempos}")
+    await db.crear_comando("hablar", {
+        "audio": guardar_audio(audio_b64) if audio_b64 else None,
+        "pregunta": texto,
+        "respuesta": r["respuesta"],
+        "origen": origen,
+    })
     return {"transcripcion": texto, "idioma": idioma, **r, "audio": audio_b64, "tiempos": tiempos}
 
 
