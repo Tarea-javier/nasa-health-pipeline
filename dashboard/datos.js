@@ -7,7 +7,7 @@ export const RANGOS = [
   { id: "24h", etiqueta: "24 h", texto: "last 24 hours", resolucion: "5 min averages", ms: 86400e3 },
   { id: "7d", etiqueta: "7 d", texto: "last 7 days", resolucion: "30 min averages", ms: 7 * 86400e3 },
   { id: "30d", etiqueta: "30 d", texto: "last 30 days", resolucion: "2 h averages", ms: 30 * 86400e3 },
-  { id: "1y", etiqueta: "1 yr", texto: "last year", resolucion: "daily averages", ms: 365 * 86400e3 },
+  { id: "1y", etiqueta: "Pre-flight", texto: "last year · pre-flight vs in-flight", resolucion: "daily averages", ms: 365 * 86400e3 },
 ];
 
 export const METRICAS = [
@@ -33,18 +33,7 @@ export const ESTADOS = {
   sin_datos: { etiqueta: "No data", nivel: -1 },
 };
 
-export const HERRAMIENTAS = {
-  estado_actual: "checked current status",
-  consultar_serie: "checked history",
-  mostrar_grafica: "changed the chart",
-};
-
-export const SUGERENCIAS = [
-  "How are my vital signs?",
-  "Show me my heart rate for the last week",
-  "How is the cabin CO₂?",
-  "How have I slept this month?",
-];
+export const ORIGEN = Math.random().toString(36).slice(2);
 
 const NOMBRES_INDICADOR = {
   hr: "Heart rate",
@@ -129,17 +118,19 @@ export const api = {
   estado: tripulante_id => pedir(`/api/estado?${consulta({ tripulante_id })}`),
   series: (indicadores, tripulante_id, rango) =>
     pedir(`/api/serie?${consulta({ indicadores: indicadores.join(","), tripulante_id, rango })}`),
-  chat: (mensaje, tripulante_id, sesion) =>
-    pedir("/api/chat", {
+  sincronia: () => pedir("/api/sincronia"),
+  vista: vista =>
+    pedir("/api/vista", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ mensaje, tripulante_id, sesion }),
+      body: JSON.stringify({ ...vista, origen: ORIGEN }),
     }),
   voz: (audio, tripulante_id, sesion) => {
     const datos = new FormData();
     datos.append("audio", audio, "pregunta.webm");
     datos.append("tripulante_id", tripulante_id);
     datos.append("sesion", sesion);
+    datos.append("origen", ORIGEN);
     return pedir("/api/voz", { method: "POST", body: datos });
   },
 };
@@ -244,12 +235,20 @@ export function alRecibirComando(accion, fn) {
   manejadores[accion] = fn;
 }
 
-export function cambiarVista(cambios) {
+export function fijarComando(id) {
+  control.comando = id;
+}
+
+export function cambiarVista(cambios, difundir = true) {
   const actual = leer();
   const recarga =
     (cambios.tripulante && cambios.tripulante !== actual.tripulante) ||
     (cambios.rango && cambios.rango !== actual.rango);
   actualizar(recarga ? { ...cambios, cargando: true } : cambios);
+  if (difundir) {
+    const { tripulante, rango, foco } = leer();
+    api.vista({ tripulante, rango, foco }).catch(() => {});
+  }
   if (recarga) {
     control.forzar = true;
     ciclo();
@@ -257,7 +256,16 @@ export function cambiarVista(cambios) {
 }
 
 async function aplicarComandos(desde) {
-  for (const c of await api.comandos(desde)) manejadores[c.accion]?.(c.params);
+  let ultimo = desde;
+  for (const c of await api.comandos(desde)) {
+    ultimo = c.id;
+    try {
+      manejadores[c.accion]?.(c.params);
+    } catch (e) {
+      console.warn("comando", c.accion, e);
+    }
+  }
+  return ultimo;
 }
 
 async function cargarSeries() {
@@ -278,8 +286,8 @@ export async function ciclo() {
     const v = await api.version();
     actualizar({ conexion: { ok: true, actualizado: v.actualizado } });
 
-    if (control.comando !== null && v.comando > control.comando) await aplicarComandos(control.comando);
-    control.comando = v.comando;
+    if (control.comando === null) control.comando = v.comando;
+    else if (v.comando > control.comando) control.comando = await aplicarComandos(control.comando);
 
     const cambio = v.version !== control.version;
     control.version = v.version;
